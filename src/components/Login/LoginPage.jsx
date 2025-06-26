@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import api from "/src/api.js";
+import logo from "/src/assets/logo.png";
+import appleLogo from "/src/assets/apple-logo.jpg";
+import googleLogo from "/src/assets/google-logo.png";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -40,7 +43,7 @@ function LoginPage() {
   return (
     <div className="min-h-screen flex justify-center items-center">
       <div className="w-full max-w-sm p-6 bg-transparent backdrop-blur-md rounded-lg">
-        <div class="flex justify-center mb-20"><img src="src/assets/logo.png" alt="logo" className="w-80 " /></div>
+        <div class="flex justify-center mb-20"><img src={logo} alt="logo" className="w-80 " /></div>
         <h2 className="font-serif text-3xl font-semibold text-left text-[#223140] mb-8">
           Admin Panel Login
         </h2>
@@ -91,13 +94,13 @@ function LoginPage() {
               className="w-auto bg-black text-white py-2 px-2 rounded-xl transition"
               onClick={() => console.log("Apple login triggered")}
             >
-              <img src="src/assets/apple-logo.jpg" class="w-10" />
+              <img src={appleLogo} class="w-10" />
             </button>
             <button
               className="w-auto bg-white border text-white py-2 px-1 rounded-xl ltransition"
               onClick={() => console.log("Google login triggered")}
             >
-              <img src="src/assets/google-logo.png" class="w-12" />
+              <img src={googleLogo} class="w-12" />
             </button>
           </div>
         </form>
