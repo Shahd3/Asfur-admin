@@ -5,10 +5,13 @@ import Dashboard from "./components/Dashboard/Dashboard";
 import LoginPage from "./components/Login/LoginPage";
 import Header from "./components/Layout/header";
 import Package from "./components/Package/Package";
-import Users from "./components/Users/Users"; 
-import Offers from "./components/Offer/offer"; 
-import Booking from "./components/Booking/Booking"; 
-import Agency from "./components/Agency/Agency"
+import Users from "./components/Users/Users";
+import Offers from "./components/Offer/offer";
+import Booking from "./components/Booking/Booking";
+import Agency from "./components/Agency/Agency"; 
+import PackageDetails from "./components/Package/packagedetails"; 
+import AddPackageform from "./components/Package/AddPackage";
+//import EditPackage from "./components/Package/editPacakge";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -43,7 +46,7 @@ function Layout({ isLoggedIn }) {
 
       <div className="flex-1 min-h-screen bg-gradient-to-b from-[#f2fefd] to-white font-dm-serif">
         {showLayout && <Header />}
-        <div class="p-6">
+        <div className="p-6">
           <Routes>
             <Route
               path="/loginPage"
@@ -58,6 +61,10 @@ function Layout({ isLoggedIn }) {
             <Route path="/offer" element={<Offers />} />
             <Route path="/booking" element={<Booking />} />
             <Route path="/agency" element={<Agency />} />
+            <Route path="/package/:id" element={<PackageDetails />} />
+            <Route path="pages/addpackageform" element={<AddPackageform />} />
+            {/* <Route path="/package/edit/:id" element={<EditPackage />} /> */}
+
           </Routes>
         </div>
       </div>

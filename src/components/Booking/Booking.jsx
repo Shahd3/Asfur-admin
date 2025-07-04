@@ -78,13 +78,12 @@ export default function Booking() {
                   </p>
                   <p className="text-sm mt-1">
                     <span
-                      className={`inline-block px-2 py-1 mt-2 rounded-full text-xs font-medium ${
-                        booking.booking_status === "CONFIRMED"
-                          ? "bg-green-200 text-green-800"
-                          : booking.booking_status === "CANCELLED"
+                      className={`inline-block px-2 py-1 mt-2 rounded-full text-xs font-medium ${booking.booking_status === "CONFIRMED"
+                        ? "bg-green-200 text-green-800"
+                        : booking.booking_status === "CANCELLED"
                           ? "bg-red-200 text-red-800"
                           : "bg-yellow-200 text-yellow-800"
-                      }`}
+                        }`}
                     >
                       {booking.booking_status}
                     </span>

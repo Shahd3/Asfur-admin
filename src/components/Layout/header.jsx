@@ -31,15 +31,7 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow px-6 py-3 flex justify-between items-center relative">
-      {/* LEFT: Search bar */}
-      <div className="flex-1 max-w-md">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="w-full px-4 py-2 border rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0c4041]"
-        />
-      </div>
-
+      
       {/* RIGHT: Profile and Notification */}
       <div className="flex items-center space-x-4 ml-auto">
         {/* Notification button */}

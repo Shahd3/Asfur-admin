@@ -1,174 +1,177 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
 import api from "/src/api";
-
+import AddPackageForm from "./AddPackage.jsx";
+import { Plus } from "lucide-react";
 
 export default function Package() {
     const [packages, setPackages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
 
-    const [newPackage, setNewPackage] = useState({
-        title: "",
-        overview: "",
-        price: "",
-        image: "",
-        day: "",
-        description: "",
-    });
-
+    const navigate = useNavigate();
     const token = localStorage.getItem("token");
+    const headers = { Authorization: `Bearer ${token}` };
 
-    const headers = {
-        Authorization: `Bearer ${token}`,
-    };
+    const ADD_PACKAGE_URL = "/admin/package/create-package";
 
-    const GET_PACKAGES_URL = "/admin/package/get-packages-list?sort=min_rooms&sort_dir=asc&limit=100&page=1";
-    const ADD_PACKAGE_URL = "/admin/package/create-package-translation";
-
-    useEffect(() => {
-        const fetchPackages = async () => {
-            try {
-                const response = await api.get(GET_PACKAGES_URL, { headers });
-                const results = response.data?.data;
-                setPackages(results || []);
-            } catch (error) {
-                console.error("Error fetching packages:", error.message || error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchPackages();
-    }, []);
-
-    const handleAddPackage = async () => {
+    const fetchPackages = async (pageNum = 1) => {
         try {
-            const response = await axios.post(ADD_PACKAGE_URL, newPackage, { headers });
-            setPackages((prev) => [...prev, response.data]);
-            setNewPackage({
-                title: "",
-                overview: "",
-                price: "",
-                image: "",
-                day: "",
-                description: "",
+            const response = await api.get(
+                `/admin/package/get-packages-list?sort=min_rooms&sort_dir=asc&limit=15&page=${pageNum}`,
+                { headers }
+            );
+
+            const newPackages = response.data?.data || [];
+            setPackages((prev) => {
+                const uniquePackages = [...prev, ...newPackages].filter(
+                    (pkg, index, self) =>
+                        index === self.findIndex((p) => p.id === pkg.id)
+                );
+                return uniquePackages;
             });
-            setShowForm(false);
+
+            if (newPackages.length < 15) {
+                setHasMore(false);
+            }
         } catch (error) {
-            console.error("Error adding package:", error.message || error);
+            console.error("Error fetching packages:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
+    useEffect(() => {
+        fetchPackages(page);
+    }, [page]);
+
+    const handleAddPackage = async (packageData) => {
+        try {
+            const { title, description, ...rest } = packageData;
+
+            const payload = {
+                ...rest,
+                package_translations: [
+                    {
+                        locale: "en",
+                        title,
+                        description,
+                    },
+                ],
+            };
+
+            const response = await api.post(ADD_PACKAGE_URL, payload, { headers });
+
+
+            setPackages([]);
+            setPage(1);
+            setHasMore(true);
+            setLoading(true);
+            setShowForm(false);
+        } catch (error) {
+            console.error("Error adding package:", error);
+        }
+    };
+
+
+
+    const getTranslation = (pkg, locale = "en") =>
+        pkg.package_translations?.find((t) => t.locale === locale);
+
     return (
-        <div className="p-6 max-w-screen-xl mx-auto">
-
-
-
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                <h1 className="text-2xl font-bold text-gray-800">📦 Packages</h1>
-                <button
-                    onClick={() => setShowForm(true)}
-                    className="bg-[#c7e8ea] hover:bg-[lightblue] text-black px-4 py-2 rounded-md text-sm"
-                >
-                    ➕ Add A New Package
-                </button>
-            </div>
-
-
-
-            {showForm && (
-                <div className="bg-white p-4 rounded shadow mb-6">
-                    <h2 className="text-lg font-semibold mb-2 text-gray-800 ">Add New Package</h2>
-
-
-                    <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
-                        <input
-                            type="text"
-                            placeholder="Title"
-                            value={newPackage.title}
-                            onChange={(e) => setNewPackage({ ...newPackage, title: e.target.value })}
-                            className="p-2 border rounded"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Overview"
-                            value={newPackage.overview}
-                            onChange={(e) => setNewPackage({ ...newPackage, overview: e.target.value })}
-                            className="p-2 border rounded "
-                        />
-                        <input
-                            type="text"
-                            placeholder="Price"
-                            value={newPackage.price}
-                            onChange={(e) => setNewPackage({ ...newPackage, price: e.target.value })}
-                            className="p-2 border rounded "
-                        />
-                    </div>
-                    <div className="mt-4 flex gap-2">
-                        <button
-                            onClick={handleAddPackage}
-                            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                        >
-                            Submit
-                        </button>
-                        <button
-                            onClick={() => setShowForm(false)}
-                            className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
-
-
-
-            {loading ? (
+        <div className="p-6">
+            {showForm ? (
+                <AddPackageForm onSubmit={handleAddPackage} />
+            ) : loading ? (
                 <div className="text-center text-gray-500">Loading packages...</div>
             ) : (
-                <div className="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-4">
-                    {packages.map((pkg) => (
+                <div>
+                    <div className="flex justify-between items-center mb-14 pl-2 pt-4 rounded-full">
+                        <h1 className="text-4xl font-bold text-[#0C4041]">Package List</h1>
                         <div
-                            key={pkg.id}
-                            className="bg-white rounded-lg shadow flex flex-col overflow-hidden w-full aspect-square"
+                            onClick={() => setShowForm(true)}
+                            className="fixed right-6 bg-[#129295] hover:bg-[#0f7f81] text-white w-16 h-16 rounded-full shadow-lg cursor-pointer group transition-all duration-300 ease-in-out hover:w-40 flex items-center justify-start pl-4 z-50"
                         >
-
-
-                            <div className="h-1/2 bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
-                                {pkg.cover?.virtual_path ? (
-                                    <img
-                                        src={pkg.cover.virtual_path}
-                                        alt={pkg.package_translations?.[0]?.title || "Package Image"}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    "No Image"
-                                )}
-                            </div>
-
-
-
-                            <div className="h-1/2 p-4 flex flex-col justify-between">
-                                <div>
-                                    <h2 className="text-md font-semibold text-gray-800 truncate">
-                                        {pkg.package_translations?.[0]?.title || "No Title"}
-                                    </h2>
-                                    <div
-                                        className="text-xs text-gray-600 dark:text-gray-300 mt-1"
-                                        dangerouslySetInnerHTML={{
-                                            __html: pkg.package_translations?.[0]?.description || "No Description",
-                                        }}
-                                    />
-                                </div>
-                                <div className="mt-2 text-xs text-gray-500">
-                                    <p className="text-blue-600 dark:text-blue-400 font-semibold mt-1">
-                                        {pkg.selling_price ? `Dhs ${pkg.selling_price} per person` : "No Price"}
-                                    </p>
-                                </div>
-                            </div>
+                            <Plus className="w-8 h-8 shrink-0 transition-all duration-300" />
+                            <span className="ml-2 text-md whitespace-nowrap overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                Add Package
+                            </span>
                         </div>
-                    ))}
+                    </div>
+                    <div className="grid grid-cols-4 gap-4">
+                        {packages.map((pkg, index) => {
+                            const translation = getTranslation(pkg, "en");
+
+                            return (
+                                <Link
+                                    to={`/package/${pkg.id}`}
+                                    key={`${pkg.id}-${index}`}
+                                    className="relative bg-[#f9f9f9] rounded-lg shadow flex flex-col overflow-hidden hover:shadow-md transition transform hover:scale-105 duration-300 ease-in-out"
+                                >
+                                    <div className="bg-white">
+                                        <div className="h-48 bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
+                                            {pkg.cover?.virtual_path ? (
+                                                <img
+                                                    src={pkg.cover.virtual_path}
+                                                    alt={translation?.title || "Package Image"}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                "No Image"
+                                            )}
+                                        </div>
+
+                                        <div className="p-4 flex flex-col justify-between flex-grow">
+                                            <h2 className="text-2xl font-bold text-gray-800 truncate">
+                                                {translation?.title || "No Title"}
+                                            </h2>
+
+                                            <div className="mt-1 flex items-center gap-2">
+                                                {pkg.country?.flag && (
+                                                    <img
+                                                        src={pkg.country.flag}
+                                                        alt="Country Flag"
+                                                        className="h-4 w-6 object-cover rounded-sm"
+                                                    />
+                                                )}
+                                                <p className="text-gray-600 font-medium text-sm">
+                                                    {pkg.city?.name || "No City"}, {pkg.country?.name || "No Country"}
+                                                </p>
+                                            </div>
+
+                                            <div
+                                                className="text-xs text-gray-500 mt-1 overflow-hidden text-ellipsis"
+                                                style={{ display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical" }}
+                                                dangerouslySetInnerHTML={{
+                                                    __html: translation?.description || "No Description",
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="pl-3 pb-3">
+                                        <p className="text-[#129295] font-semibold mt-2">
+                                            {pkg.selling_price ? `Dhs ${pkg.selling_price} per person` : "No Price"}
+                                        </p>
+                                    </div>
+
+
+                                </Link>
+                            );
+                        })}
+                    </div>
+
+                    {hasMore && !loading && (
+                        <div className="text-center mt-6 text-sm">
+                            <button
+                                className="text-[#129295]  hover:text-[#0f7f81] transition"
+                                onClick={() => setPage((prev) => prev + 1)}
+                            >
+                                Load More ↓
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

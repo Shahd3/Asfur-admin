@@ -4,9 +4,7 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: 'https://staging.asfur.mvp-apps.ae/api',
   headers: {
-    'Content-Type': 'application/json',
-
-   
+    Accept: 'application/json',
   }
 });
 api.interceptors.request.use((config) => {
